@@ -170,9 +170,21 @@ const CenteredModel = ({ modelConfig }: CenteredModelProps) => {
   const { Component } = modelConfig;
   const spinGroupRef = useRef<Group>(null);
   const contentGroupRef = useRef<Group>(null);
+  const initialRotationRef = useRef(Math.random() * TAU);
+  const rotationVelocityRef = useRef(
+    SYMBOL_SPIN_SPEED *
+      (Math.random() > 0.5 ? -1 : 1) *
+      (0.75 + Math.random() * 0.5)
+  );
 
   useLayoutEffect(() => {
     const contentGroup = contentGroupRef.current;
+    const spinGroup = spinGroupRef.current;
+
+    if (spinGroup) {
+      spinGroup.rotation.y = initialRotationRef.current;
+    }
+
     if (!contentGroup) {
       return;
     }
@@ -216,7 +228,7 @@ const CenteredModel = ({ modelConfig }: CenteredModelProps) => {
       return;
     }
 
-    spinGroup.rotation.y += delta * SYMBOL_SPIN_SPEED;
+    spinGroup.rotation.y += delta * rotationVelocityRef.current;
   });
 
   return (
