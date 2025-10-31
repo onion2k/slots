@@ -160,7 +160,7 @@ export const FruitMachineScene = () => {
   const frameThickness = Math.max(config.itemScale * 0.5, 0.35);
   const topPanelThickness = frameThickness;
   const bottomPanelThickness = frameThickness * 1.2;
-  const backPanelDepth = Math.max(config.itemScale * 0.6, 0.3);
+  const backPanelDepth = Math.max(config.itemScale * 0.85, 0.45);
   const frontFrameDepth = Math.max(config.itemScale * 0.7, 0.35);
   const cabinetInnerWidth = reelCoreLength + reelGap * 0.4;
   const cabinetOuterWidth = cabinetInnerWidth + frameThickness * 2;
@@ -194,7 +194,8 @@ export const FruitMachineScene = () => {
   const bottomBarY = -cabinetHalfHeight + bottomSectionHeight / 2;
   const cabinetFrontZ = winLineDepth - frontFrameDepth * 0.5 - config.itemScale * 0.05;
   const frontOuterZ = cabinetFrontZ + frontFrameDepth / 2;
-  const cabinetBackZ = -config.reelRadius * 0.9 - backPanelDepth / 2;
+  const rearClearance = config.itemScale * 0.9;
+  const cabinetBackZ = -config.reelRadius - rearClearance - backPanelDepth / 2;
   const backOuterZ = cabinetBackZ - backPanelDepth / 2;
   const cabinetDepth = frontOuterZ - backOuterZ;
   const cabinetCenterZ = backOuterZ + cabinetDepth / 2;
