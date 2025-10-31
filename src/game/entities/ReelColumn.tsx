@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { Box3, Group, MeshStandardMaterial, Vector3 } from "three";
+import { Box3, Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 import { shallow } from "zustand/shallow";
 import {
@@ -209,12 +209,24 @@ const CenteredModel = ({ modelConfig }: CenteredModelProps) => {
       return true;
     };
 
+    const applyShadowSettings = () => {
+      contentGroup.traverse((object) => {
+        if ("isMesh" in object && (object as Mesh).isMesh) {
+          const mesh = object as Mesh;
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+        }
+      });
+    };
+
     if (alignToCenter()) {
+      applyShadowSettings();
       return;
     }
 
     const frame = requestAnimationFrame(() => {
       alignToCenter();
+      applyShadowSettings();
     });
 
     return () => {
