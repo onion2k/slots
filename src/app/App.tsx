@@ -21,8 +21,8 @@ const App = () => {
           makeDefault
           enableDamping
           dampingFactor={0.08}
-          minDistance={12}
-          maxDistance={28}
+          minDistance={20}
+          maxDistance={20}
           target={[0, 2.5, 0]}
         />
       </Canvas>

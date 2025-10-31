@@ -10,6 +10,7 @@ import { easeOutCubic } from "@game/utils/easing";
 import type { SymbolModelConfig } from "@game/core/fruitMachineConfig";
 
 const TAU = Math.PI * 2;
+const SYMBOL_SPIN_SPEED = 0.35;
 const TEMP_BOX = new Box3();
 const TEMP_CENTER = new Vector3();
 
@@ -167,27 +168,32 @@ interface CenteredModelProps {
 
 const CenteredModel = ({ modelConfig }: CenteredModelProps) => {
   const { Component } = modelConfig;
-  const groupRef = useRef<Group>(null);
+  const spinGroupRef = useRef<Group>(null);
+  const contentGroupRef = useRef<Group>(null);
 
   useLayoutEffect(() => {
-    const group = groupRef.current;
-    if (!group) {
+    const contentGroup = contentGroupRef.current;
+    if (!contentGroup) {
       return;
     }
 
     const alignToCenter = () => {
-      group.position.set(0, 0, 0);
-      group.updateMatrixWorld(true);
+      contentGroup.position.set(0, 0, 0);
+      contentGroup.updateMatrixWorld(true);
 
       TEMP_BOX.makeEmpty();
-      TEMP_BOX.setFromObject(group);
+      TEMP_BOX.setFromObject(contentGroup);
 
       if (!Number.isFinite(TEMP_BOX.min.x)) {
         return false;
       }
 
       TEMP_BOX.getCenter(TEMP_CENTER);
-      group.position.set(-TEMP_CENTER.x, -TEMP_CENTER.y, -TEMP_CENTER.z);
+      contentGroup.position.set(
+        -TEMP_CENTER.x,
+        -TEMP_CENTER.y,
+        -TEMP_CENTER.z
+      );
       return true;
     };
 
@@ -204,9 +210,20 @@ const CenteredModel = ({ modelConfig }: CenteredModelProps) => {
     };
   }, []);
 
+  useFrame((_, delta) => {
+    const spinGroup = spinGroupRef.current;
+    if (!spinGroup) {
+      return;
+    }
+
+    spinGroup.rotation.y += delta * SYMBOL_SPIN_SPEED;
+  });
+
   return (
-    <group ref={groupRef}>
-      <Component castShadow receiveShadow scale={1} />
+    <group ref={spinGroupRef}>
+      <group ref={contentGroupRef}>
+        <Component castShadow receiveShadow scale={1} />
+      </group>
     </group>
   );
 };
