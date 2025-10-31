@@ -1,3 +1,12 @@
+import type { ComponentType } from "react";
+import {
+  WeaponsPieCherry
+} from "@game/assets/piecherry";
+import {
+  WeaponsCroissant
+} from "@game/assets/croisssant";
+
+
 export type SymbolId =
   | "cherry"
   | "lemon"
@@ -6,7 +15,17 @@ export type SymbolId =
   | "seven"
   | "diamond";
 
-export type SymbolGeometry = "box" | "sphere";
+export type SymbolGeometry = "box" | "sphere" | "model";
+
+export type SymbolModelProps = {
+  castShadow?: boolean;
+  receiveShadow?: boolean;
+  scale: number;
+};
+
+export interface SymbolModelConfig {
+  Component: ComponentType<SymbolModelProps>;
+}
 
 export interface SymbolDefinition {
   id: SymbolId;
@@ -14,6 +33,7 @@ export interface SymbolDefinition {
   geometry: SymbolGeometry;
   color: string;
   payout: number;
+  model?: SymbolModelConfig;
 }
 
 export interface ReelConfig {
@@ -45,16 +65,22 @@ const SYMBOL_DEFINITIONS: Record<SymbolId, SymbolDefinition> = {
   cherry: {
     id: "cherry",
     label: "Cherry",
-    geometry: "sphere",
+    geometry: "model",
     color: "#ff4d6d",
-    payout: 10
+    payout: 10,
+    model: {
+      Component: WeaponsPieCherry
+    }
   },
   lemon: {
     id: "lemon",
-    label: "Lemon",
-    geometry: "sphere",
+    label: "Croissant",
+    geometry: "model",
     color: "#f9d923",
-    payout: 8
+    payout: 8,
+    model: {
+      Component: WeaponsCroissant
+    }
   },
   plum: {
     id: "plum",

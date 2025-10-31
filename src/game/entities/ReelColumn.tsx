@@ -7,14 +7,9 @@ import {
   type ReelRuntimeState
 } from "@game/state/slotsStore";
 import { easeOutCubic } from "@game/utils/easing";
+import type { SymbolModelConfig } from "@game/core/fruitMachineConfig";
 
 const TAU = Math.PI * 2;
-
-const cylinderMaterial = new MeshStandardMaterial({
-  color: "#141c29",
-  roughness: 0.4,
-  metalness: 0.6
-});
 
 interface ReelColumnProps {
   reelId: string;
@@ -110,9 +105,30 @@ export const ReelColumn = ({ reelId, position }: ReelColumnProps) => {
 
   const { symbolDefinitions, itemScale } = config;
 
+  const renderModelSymbol = (modelConfig: SymbolModelConfig | undefined) => {
+    if (!modelConfig) {
+      return null;
+    }
+
+    const { Component, baseScale } = modelConfig;
+
+    return (
+      <Component
+        castShadow
+        receiveShadow
+        scale={1}
+      />
+    );
+  };
+
   const symbolMaterials = useMemo(() => {
     return reel.config.symbols.map((symbol) => {
       const symbolDefinition = symbolDefinitions[symbol];
+
+      if (symbolDefinition.geometry === "model") {
+        return null;
+      }
+
       return new MeshStandardMaterial({
         color: symbolDefinition.color,
         roughness: symbolDefinition.geometry === "box" ? 0.35 : 0.6,
@@ -125,7 +141,7 @@ export const ReelColumn = ({ reelId, position }: ReelColumnProps) => {
 
   useEffect(() => {
     return () => {
-      symbolMaterials.forEach((material) => material.dispose());
+      symbolMaterials.forEach((material) => material?.dispose());
     };
   }, [symbolMaterials]);
 
@@ -139,20 +155,24 @@ export const ReelColumn = ({ reelId, position }: ReelColumnProps) => {
           return (
             <group key={`${symbol}-${index}`} position={symbolPosition}>
               <group rotation={[angle, 0, 0]}>
-                <mesh castShadow>
-                  {symbolDefinition.geometry === "box" ? (
-                    <boxGeometry
-                      args={[
-                        itemScale,
-                        itemScale,
-                        itemScale
-                      ]}
-                    />
-                  ) : (
-                    <sphereGeometry args={[itemScale * 0.65, 32, 32]} />
-                  )}
-                  <primitive object={material} attach="material" />
-                </mesh>
+                {symbolDefinition.geometry === "model" ? (
+                  renderModelSymbol(symbolDefinition.model)
+                ) : (
+                  <mesh castShadow>
+                    {symbolDefinition.geometry === "box" ? (
+                      <boxGeometry
+                        args={[
+                          itemScale,
+                          itemScale,
+                          itemScale
+                        ]}
+                      />
+                    ) : (
+                      <sphereGeometry args={[itemScale * 0.65, 32, 32]} />
+                    )}
+                    {material && <primitive object={material} attach="material" />}
+                  </mesh>
+                )}
               </group>
             </group>
           );

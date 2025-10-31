@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import "@styles/app.css";
 import { FruitMachineScene } from "@game/scene/FruitMachineScene";
 import { GameHud } from "@ui/GameHud";
+import { OrbitControls } from "@react-three/drei";
 
 const App = () => {
   return (
@@ -16,6 +17,14 @@ const App = () => {
         <Suspense fallback={null}>
           <FruitMachineScene />
         </Suspense>
+        <OrbitControls
+          makeDefault
+          enableDamping
+          dampingFactor={0.08}
+          minDistance={12}
+          maxDistance={28}
+          target={[0, 2.5, 0]}
+        />
       </Canvas>
       <div className="hud-overlay">
         <GameHud />
