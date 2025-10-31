@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
-import { Group, MeshStandardMaterial } from "three";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { Box3, Group, MeshStandardMaterial, Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 import { shallow } from "zustand/shallow";
 import {
@@ -10,6 +10,8 @@ import { easeOutCubic } from "@game/utils/easing";
 import type { SymbolModelConfig } from "@game/core/fruitMachineConfig";
 
 const TAU = Math.PI * 2;
+const TEMP_BOX = new Box3();
+const TEMP_CENTER = new Vector3();
 
 interface ReelColumnProps {
   reelId: string;
@@ -98,27 +100,20 @@ export const ReelColumn = ({ reelId, position }: ReelColumnProps) => {
       return {
         symbol,
         angle,
-        position: [0, y, z] as [number, number, number]
+        position: [0, y, z] as [number, number, number],
+        rotation: [Math.PI / 2 - angle, 0, 0] as [number, number, number]
       };
     });
   }, [config.reelRadius, reel.config.symbols]);
 
-  const { symbolDefinitions, itemScale } = config;
+  const { symbolDefinitions } = config;
 
   const renderModelSymbol = (modelConfig: SymbolModelConfig | undefined) => {
     if (!modelConfig) {
       return null;
     }
 
-    const { Component, baseScale } = modelConfig;
-
-    return (
-      <Component
-        castShadow
-        receiveShadow
-        scale={1}
-      />
-    );
+    return <CenteredModel modelConfig={modelConfig} />;
   };
 
   const symbolMaterials = useMemo(() => {
@@ -148,12 +143,12 @@ export const ReelColumn = ({ reelId, position }: ReelColumnProps) => {
   return (
     <group position={position}>
       <group ref={reelGroup}>
-        {symbolLayout.map(({ symbol, angle, position: symbolPosition }, index) => {
+        {symbolLayout.map(({ symbol, rotation, position: symbolPosition }, index) => {
           const symbolDefinition = symbolDefinitions[symbol];
 
           return (
             <group key={`${symbol}-${index}`} position={symbolPosition}>
-              <group rotation={[angle, 0, 0]}>
+              <group rotation={rotation}>
                 {
                   renderModelSymbol(symbolDefinition.model)
                 }
@@ -162,6 +157,56 @@ export const ReelColumn = ({ reelId, position }: ReelColumnProps) => {
           );
         })}
       </group>
+    </group>
+  );
+};
+
+interface CenteredModelProps {
+  modelConfig: SymbolModelConfig;
+}
+
+const CenteredModel = ({ modelConfig }: CenteredModelProps) => {
+  const { Component } = modelConfig;
+  const groupRef = useRef<Group>(null);
+
+  useLayoutEffect(() => {
+    const group = groupRef.current;
+    if (!group) {
+      return;
+    }
+
+    const alignToCenter = () => {
+      group.position.set(0, 0, 0);
+      group.updateMatrixWorld(true);
+
+      TEMP_BOX.makeEmpty();
+      TEMP_BOX.setFromObject(group);
+
+      if (!Number.isFinite(TEMP_BOX.min.x)) {
+        return false;
+      }
+
+      TEMP_BOX.getCenter(TEMP_CENTER);
+      group.position.set(-TEMP_CENTER.x, -TEMP_CENTER.y, -TEMP_CENTER.z);
+      return true;
+    };
+
+    if (alignToCenter()) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      alignToCenter();
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return (
+    <group ref={groupRef}>
+      <Component castShadow receiveShadow scale={1} />
     </group>
   );
 };
