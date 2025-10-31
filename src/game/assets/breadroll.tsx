@@ -18,11 +18,11 @@ type GLTFResult = GLTF & {
   }
 }
 
-export function WeaponsBreadRoll(props: JSX.IntrinsicElements['group']) {
+export function ItemBreadRoll(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('/models/BreadRoll-transformed.glb') as unknown as GLTFResult
   return (
     <group {...props} dispose={null}>
-      <mesh geometry={nodes.bread_roll.geometry} material={materials.tiny_treats_1} scale={100} />
+      <mesh geometry={nodes.bread_roll.geometry} material={materials.tiny_treats_1} scale={150} />
     </group>
   )
 }

@@ -1,10 +1,5 @@
 import type { ComponentType } from "react";
-import {
-  WeaponsPieCherry
-} from "@game/assets/piecherry";
-import {
-  WeaponsCroissant
-} from "@game/assets/croisssant";
+import { ItemCroissant, ItemPieCherry, ItemDonut, ItemBread, ItemBreadRoll, ItemBreadSlice, ItemCakeBirthdaySlice, ItemCakeChocolateSlice, ItemCupcake } from "@game/assets";
 
 
 export type SymbolId =
@@ -69,7 +64,7 @@ const SYMBOL_DEFINITIONS: Record<SymbolId, SymbolDefinition> = {
     color: "#ff4d6d",
     payout: 10,
     model: {
-      Component: WeaponsPieCherry
+      Component: ItemPieCherry
     }
   },
   lemon: {
@@ -79,36 +74,48 @@ const SYMBOL_DEFINITIONS: Record<SymbolId, SymbolDefinition> = {
     color: "#f9d923",
     payout: 8,
     model: {
-      Component: WeaponsCroissant
+      Component: ItemCroissant
     }
   },
   plum: {
     id: "plum",
-    label: "Plum",
-    geometry: "sphere",
+    label: "Donut",
+    geometry: "model",
     color: "#924da3",
-    payout: 12
+    payout: 12,
+    model: {
+      Component: ItemDonut
+    }
   },
   bell: {
     id: "bell",
-    label: "Bell",
-    geometry: "box",
+    label: "Breadroll",
+    geometry: "model",
     color: "#ffd166",
-    payout: 16
+    payout: 16,
+    model: {
+      Component: ItemBreadRoll
+    }
   },
   seven: {
     id: "seven",
-    label: "Seven",
-    geometry: "box",
+    label: "BirthdayCake",
+    geometry: "model",
     color: "#ff006e",
-    payout: 30
+    payout: 30,
+    model: {
+      Component: ItemCakeBirthdaySlice
+    }
   },
   diamond: {
     id: "diamond",
-    label: "Diamond",
-    geometry: "box",
+    label: "Cupcake",
+    geometry: "model",
     color: "#4cc9f0",
-    payout: 50
+    payout: 50,
+    model: {
+      Component: ItemCupcake
+    }
   }
 };
 

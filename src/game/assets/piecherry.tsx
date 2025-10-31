@@ -18,7 +18,7 @@ type GLTFResult = GLTF & {
   }
 }
 
-export function WeaponsPieCherry(props: JSX.IntrinsicElements['group']) {
+export function ItemPieCherry(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('/models/PieCherry-transformed.glb') as unknown as GLTFResult
   return (
     <group {...props} dispose={null}>

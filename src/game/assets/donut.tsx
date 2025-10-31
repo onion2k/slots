@@ -18,11 +18,11 @@ type GLTFResult = GLTF & {
   }
 }
 
-export function WeaponsDonut(props: JSX.IntrinsicElements['group']) {
+export function ItemDonut(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('/models/Donut-transformed.glb') as unknown as GLTFResult
   return (
     <group {...props} dispose={null}>
-      <mesh geometry={nodes.donut.geometry} material={materials.tiny_treats_1} scale={100} />
+      <mesh geometry={nodes.donut.geometry} material={materials.tiny_treats_1} scale={200} />
     </group>
   )
 }

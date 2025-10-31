@@ -18,11 +18,11 @@ type GLTFResult = GLTF & {
   }
 }
 
-export function WeaponsCupcake(props: JSX.IntrinsicElements['group']) {
+export function ItemCupcake(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('/models/Cupcake-transformed.glb') as unknown as GLTFResult
   return (
     <group {...props} dispose={null}>
-      <mesh geometry={nodes.cupcake.geometry} material={materials.tiny_treats_1} scale={100} />
+      <mesh geometry={nodes.cupcake.geometry} material={materials.tiny_treats_1} scale={150} />
     </group>
   )
 }

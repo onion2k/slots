@@ -18,11 +18,11 @@ type GLTFResult = GLTF & {
   }
 }
 
-export function WeaponsCroissant(props: JSX.IntrinsicElements['group']) {
+export function ItemCroissant(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('/models/Croissant-transformed.glb') as unknown as GLTFResult
   return (
     <group {...props} dispose={null}>
-      <mesh geometry={nodes.croissant.geometry} material={materials.tiny_treats_1} scale={100} />
+      <mesh geometry={nodes.croissant.geometry} material={materials.tiny_treats_1} scale={150} />
     </group>
   )
 }

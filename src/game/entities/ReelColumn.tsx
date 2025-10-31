@@ -150,29 +150,13 @@ export const ReelColumn = ({ reelId, position }: ReelColumnProps) => {
       <group ref={reelGroup}>
         {symbolLayout.map(({ symbol, angle, position: symbolPosition }, index) => {
           const symbolDefinition = symbolDefinitions[symbol];
-          const material = symbolMaterials[index];
 
           return (
             <group key={`${symbol}-${index}`} position={symbolPosition}>
               <group rotation={[angle, 0, 0]}>
-                {symbolDefinition.geometry === "model" ? (
+                {
                   renderModelSymbol(symbolDefinition.model)
-                ) : (
-                  <mesh castShadow>
-                    {symbolDefinition.geometry === "box" ? (
-                      <boxGeometry
-                        args={[
-                          itemScale,
-                          itemScale,
-                          itemScale
-                        ]}
-                      />
-                    ) : (
-                      <sphereGeometry args={[itemScale * 0.65, 32, 32]} />
-                    )}
-                    {material && <primitive object={material} attach="material" />}
-                  </mesh>
-                )}
+                }
               </group>
             </group>
           );

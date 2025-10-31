@@ -18,11 +18,11 @@ type GLTFResult = GLTF & {
   }
 }
 
-export function WeaponsBread(props: JSX.IntrinsicElements['group']) {
+export function ItemBread(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('/models/Bread-transformed.glb') as unknown as GLTFResult
   return (
     <group {...props} dispose={null}>
-      <mesh geometry={nodes.bread.geometry} material={materials.tiny_treats_1} scale={100} />
+      <mesh geometry={nodes.bread.geometry} material={materials.tiny_treats_1} scale={150} />
     </group>
   )
 }
