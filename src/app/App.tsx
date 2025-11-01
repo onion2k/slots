@@ -13,6 +13,7 @@ import { OrbitControls } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { FruitMachineConfig } from "@game/core/fruitMachineConfig";
 import { useSlotsStore } from "@game/state/slotsStore";
+import { Color } from "three";
 
 interface TopHalfMetrics {
   topHalfCenterWorldY: number;
@@ -141,6 +142,7 @@ const computeTopHalfMetrics = (config: FruitMachineConfig): TopHalfMetrics => {
 const App = () => {
   const config = useSlotsStore((state) => state.config);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const backgroundColor = useMemo(() => new Color("#0b111c"), []);
 
   return (
     <div className="app-shell">
@@ -149,7 +151,7 @@ const App = () => {
         camera={{ position: [0, 3.5, 30], fov: 50, near: 0.1, far: 100 }}
         shadows
       >
-        <color attach="background" args={["#0b111c"]} />
+        <SceneBackground color={backgroundColor} />
         <Suspense fallback={null}>
           <FruitMachineScene />
         </Suspense>
@@ -172,6 +174,20 @@ const App = () => {
 type ResponsiveCameraRigProps = {
   controlsRef: MutableRefObject<OrbitControlsImpl | null>;
   config: FruitMachineConfig;
+};
+
+const SceneBackground = ({ color }: { color: Color }) => {
+  const { scene } = useThree();
+
+  useEffect(() => {
+    const previous = scene.background;
+    scene.background = color;
+    return () => {
+      scene.background = previous;
+    };
+  }, [color, scene]);
+
+  return null;
 };
 
 const ResponsiveCameraRig = ({ controlsRef, config }: ResponsiveCameraRigProps) => {

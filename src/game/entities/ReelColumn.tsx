@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { Box3, Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
+import type { Group, Mesh } from "three";
+import { Box3, MeshStandardMaterial, Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 import { shallow } from "zustand/shallow";
 import {
@@ -142,13 +143,16 @@ export const ReelColumn = ({ reelId, position }: ReelColumnProps) => {
   }, [symbolMaterials]);
 
   return (
+    // eslint-disable-next-line react/no-unknown-property
     <group position={position}>
       <group ref={reelGroup}>
         {symbolLayout.map(({ symbol, rotation, position: symbolPosition }, index) => {
           const symbolDefinition = symbolDefinitions[symbol];
 
           return (
+            // eslint-disable-next-line react/no-unknown-property
             <group key={`${symbol}-${index}`} position={symbolPosition}>
+              {/* eslint-disable-next-line react/no-unknown-property */}
               <group rotation={rotation}>
                 {
                   renderModelSymbol(symbolDefinition.model)
