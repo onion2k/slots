@@ -148,7 +148,7 @@ const App = () => {
     <div className="app-shell">
       <Canvas
         className="app-canvas"
-        camera={{ position: [0, 3.5, 30], fov: 50, near: 0.1, far: 100 }}
+        camera={{ position: [0, 2, 30], fov: 50, near: 0.1, far: 150 }}
         shadows
       >
         <SceneBackground color={backgroundColor} />
@@ -216,21 +216,23 @@ const ResponsiveCameraRig = ({ controlsRef, config }: ResponsiveCameraRigProps) 
     const orbitRadius = Math.min(Math.max(requiredRadius, minRadius), maxRadius);
 
     const verticalOffset = Math.min(
-      orbitRadius * (isCompact ? 0.42 : 0.3),
-      isCompact ? 4 : 3
+      orbitRadius * (isCompact ? 0.18 : 0.14),
+      isCompact ? 2.2 : 1.8
     );
     const zDistance = Math.sqrt(
       Math.max(orbitRadius * orbitRadius - verticalOffset * verticalOffset, 1)
     );
     const compactTargetY = Math.max(
-      metrics.topHalfBottomWorldY + metrics.topHalfHeight * 0.4,
-      1.8
+      metrics.topHalfBottomWorldY + metrics.topHalfHeight * 0.24,
+      1.4
     );
     const desktopTargetY = Math.max(
-      metrics.topHalfBottomWorldY + metrics.topHalfHeight * 0.35,
-      2.5
+      metrics.topHalfBottomWorldY + metrics.topHalfHeight * 0.22,
+      1.9
     );
-    const targetY = isCompact ? compactTargetY : desktopTargetY;
+    const targetBase = isCompact ? compactTargetY : desktopTargetY;
+    const targetAdjustment = isCompact ? -0.35 : -0.55;
+    const targetY = Math.max(targetBase + targetAdjustment, 1.1);
 
     camera.position.set(0, targetY + verticalOffset, zDistance);
     camera.fov = fov;

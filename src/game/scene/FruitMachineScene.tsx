@@ -87,6 +87,15 @@ const createSpinButtonMaterial = () =>
     emissiveIntensity: 0.25
   });
 
+const createSpinDisplayMaterial = () =>
+  new MeshStandardMaterial({
+    color: "#101624",
+    roughness: 0.55,
+    metalness: 0.15,
+    emissive: "#17213a",
+    emissiveIntensity: 0.35
+  });
+
 export const FruitMachineScene = () => {
   const { config, reelIds } = useSlotsStore((state) => ({
     config: state.config,
@@ -103,6 +112,7 @@ export const FruitMachineScene = () => {
   const holdButtonMaterial = useMemo(() => createHoldButtonMaterial(), []);
   const collectButtonMaterial = useMemo(() => createCollectButtonMaterial(), []);
   const spinButtonMaterial = useMemo(() => createSpinButtonMaterial(), []);
+  const spinDisplayMaterial = useMemo(() => createSpinDisplayMaterial(), []);
 
   useEffect(() => {
     return () => {
@@ -116,6 +126,7 @@ export const FruitMachineScene = () => {
       holdButtonMaterial.dispose();
       collectButtonMaterial.dispose();
       spinButtonMaterial.dispose();
+      spinDisplayMaterial.dispose();
     };
   }, [
     cabinetMaterial,
@@ -127,6 +138,7 @@ export const FruitMachineScene = () => {
     holdButtonMaterial,
     collectButtonMaterial,
     spinButtonMaterial,
+    spinDisplayMaterial,
     winLineMaterial
   ]);
 
@@ -146,7 +158,8 @@ export const FruitMachineScene = () => {
           dotMatrixMaterial,
           holdButtonMaterial,
           collectButtonMaterial,
-          spinButtonMaterial
+          spinButtonMaterial,
+          spinDisplayMaterial
         }}
       />
     </>

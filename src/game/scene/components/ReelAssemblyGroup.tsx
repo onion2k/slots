@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import {
   BoxGeometry,
   CylinderGeometry,
-  MeshStandardMaterial
+  type MeshStandardMaterial
 } from "three";
 import type { FruitMachineConfig } from "@game/core/fruitMachineConfig";
 import { ReelColumn } from "@game/entities/ReelColumn";
@@ -133,8 +133,10 @@ export const ReelAssemblyGroup = ({
   const holdButtonHeight = holdButtonSize * 0.32;
   const actionButtonSize = holdButtonSize * 1.3;
   const actionButtonHeight = actionButtonSize * 0.34;
+  const actionButtonWidth = actionButtonSize * 2;
   const spinButtonSize = actionButtonSize * 1.15;
   const spinButtonHeight = spinButtonSize * 0.36;
+  const spinButtonWidth = spinButtonSize * 2;
   const actionRowZ = buttonPanelFrontZ - spinButtonSize * 0.6;
   const holdRowZ = Math.max(
     buttonPanelBackZ + holdButtonSize * 0.55,
@@ -142,8 +144,20 @@ export const ReelAssemblyGroup = ({
   );
   const holdButtonY = buttonPanelThickness / 2 + holdButtonHeight / 2;
   const actionButtonY = buttonPanelThickness / 2 + actionButtonHeight / 2;
-  const collectButtonX = -buttonPanelWidth / 2 + actionButtonSize * 0.7;
-  const spinButtonX = buttonPanelWidth / 2 - spinButtonSize * 0.7;
+  const collectButtonMargin = actionButtonSize * 0.2;
+  const collectButtonX =
+    -buttonPanelWidth / 2 + collectButtonMargin + actionButtonWidth / 2;
+  const spinButtonMargin = spinButtonSize * 0.2;
+  const spinButtonX =
+    buttonPanelWidth / 2 - (spinButtonMargin + spinButtonWidth / 2);
+  const spinDisplayWidth = spinButtonWidth * 0.65;
+  const spinDisplayHeight = spinButtonHeight * 0.8;
+  const spinDisplayDepth = spinButtonSize * 0.28;
+  const spinDisplayMargin = spinButtonSize * 0.25;
+  const spinDisplayX =
+    spinButtonX - (spinButtonWidth / 2 + spinDisplayMargin + spinDisplayWidth / 2);
+  const spinDisplayY = actionButtonY;
+  const spinDisplayZ = actionRowZ;
 
   const geometries = useMemo(() => {
     return {
@@ -210,15 +224,17 @@ export const ReelAssemblyGroup = ({
       ),
       holdButton: new BoxGeometry(holdButtonSize, holdButtonHeight, holdButtonSize),
       actionButton: new BoxGeometry(
-        actionButtonSize,
+        actionButtonWidth,
         actionButtonHeight,
         actionButtonSize
       ),
-      spinButton: new BoxGeometry(spinButtonSize, spinButtonHeight, spinButtonSize)
+      spinButton: new BoxGeometry(spinButtonWidth, spinButtonHeight, spinButtonSize),
+      spinDisplay: new BoxGeometry(spinDisplayWidth, spinDisplayHeight, spinDisplayDepth)
     } as const;
   }, [
     actionButtonHeight,
     actionButtonSize,
+    actionButtonWidth,
     backPanelDepth,
     bottomPanelThickness,
     bottomSectionHeight,
@@ -241,10 +257,14 @@ export const ReelAssemblyGroup = ({
     lowerCabinetDepth,
     lowerCabinetHeight,
     lowerCabinetWidth,
-    reelCoreLength,
-    reelCoreRadius,
     spinButtonHeight,
     spinButtonSize,
+    spinButtonWidth,
+    spinDisplayDepth,
+    spinDisplayHeight,
+    spinDisplayWidth,
+    reelCoreLength,
+    reelCoreRadius,
     topDisplayDepth,
     topDisplayHeight,
     topPanelThickness,
@@ -273,7 +293,8 @@ export const ReelAssemblyGroup = ({
     buttonPanelSurface: geometries.buttonPanelSurface,
     holdButton: geometries.holdButton,
     actionButton: geometries.actionButton,
-    spinButton: geometries.spinButton
+    spinButton: geometries.spinButton,
+    spinDisplay: geometries.spinDisplay
   };
 
   const cabinetLayout: CabinetLayout = {
@@ -305,7 +326,13 @@ export const ReelAssemblyGroup = ({
     actionButtonY,
     actionRowZ,
     collectButtonX,
-    spinButtonX
+    spinButtonX,
+    spinDisplayX,
+    spinDisplayY,
+    spinDisplayZ,
+    spinDisplayWidth,
+    spinDisplayHeight,
+    spinDisplayDepth
   };
 
   return (

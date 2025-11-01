@@ -19,6 +19,7 @@ export interface CabinetGeometryBundle {
   holdButton: BufferGeometry;
   actionButton: BufferGeometry;
   spinButton: BufferGeometry;
+  spinDisplay: BufferGeometry;
 }
 
 export interface CabinetMaterials {
@@ -28,6 +29,7 @@ export interface CabinetMaterials {
   holdButtonMaterial: MeshStandardMaterial;
   collectButtonMaterial: MeshStandardMaterial;
   spinButtonMaterial: MeshStandardMaterial;
+  spinDisplayMaterial: MeshStandardMaterial;
 }
 
 export interface CabinetLayout {
@@ -60,6 +62,12 @@ export interface CabinetLayout {
   actionRowZ: number;
   collectButtonX: number;
   spinButtonX: number;
+  spinDisplayX: number;
+  spinDisplayY: number;
+  spinDisplayZ: number;
+  spinDisplayWidth: number;
+  spinDisplayHeight: number;
+  spinDisplayDepth: number;
 }
 
 type CabinetMeshesProps = {
@@ -87,6 +95,13 @@ export const CabinetMeshes = ({
         geometry={geometry.dotMatrix}
         material={materials.dotMatrixMaterial}
         position={[0, layout.topDisplayY, layout.dotMatrixZ]}
+        effect={"none"}
+        message={"DOUGHPAMINE"}
+        animationMode={"sine-wave"}
+        sineWaveAmplitude={1}
+        sineWaveFrequency={0.25}
+        sineWaveSpeed={12}
+        scrollSpeed={30}
       />
       <CabinetButtonPanel
         geometry={geometry}
