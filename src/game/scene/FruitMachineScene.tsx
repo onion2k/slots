@@ -7,7 +7,7 @@ import { ReelAssemblyGroup } from "./components/ReelAssemblyGroup";
 
 const FLOOR_COLOR = "#1a2335";
 const FLOOR_POSITION: [number, number, number] = [0, -10, -1];
-const CABINET_COLOR = "#252f43";
+const CABINET_COLOR = "#f2d14a";
 
 const createCoreMaterial = () =>
   new MeshStandardMaterial({
@@ -48,14 +48,14 @@ const createCabinetMaterial = () =>
 
 const createLowerCabinetMaterial = () =>
   new MeshStandardMaterial({
-    color: "#1e2536",
+    color: "#d0d3d8",
     roughness: 0.72,
     metalness: 0.2
   });
 
 const createDotMatrixMaterial = () =>
   new MeshStandardMaterial({
-    color: "#141925",
+    color: "#f84242",
     roughness: 0.35,
     metalness: 0.15,
     emissive: "#1e2740",

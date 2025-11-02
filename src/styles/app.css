@@ -10,17 +10,3 @@
   width: 100%;
   height: 100%;
 }
-
-.hud-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 24px;
-}
-
-.hud-overlay > * {
-  pointer-events: auto;
-}

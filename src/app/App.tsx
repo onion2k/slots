@@ -8,7 +8,6 @@ import {
 } from "react";
 import "@styles/app.css";
 import { FruitMachineScene } from "@game/scene/FruitMachineScene";
-import { GameHud } from "@ui/GameHud";
 import { OrbitControls } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { FruitMachineConfig } from "@game/core/fruitMachineConfig";
@@ -76,9 +75,10 @@ const computeTopHalfMetrics = (config: FruitMachineConfig): TopHalfMetrics => {
   const totalWidth = (safeReelCount - 1) * reelGap;
   const originOffset = totalWidth / 2;
   const reelCoreLength = totalWidth + reelGap;
-  const cabinetInnerWidth = reelCoreLength + reelGap * 0.4;
-  const topDisplayWidth = cabinetInnerWidth * 0.85;
-  const buttonPanelWidth = cabinetInnerWidth * 0.92;
+  const cabinetSideClearance = Math.max(frameThickness * 0.35, reelGap * 0.1);
+  const cabinetInnerWidth = reelCoreLength + cabinetSideClearance * 2;
+  const topDisplayWidth = cabinetInnerWidth;
+  const buttonPanelWidth = cabinetInnerWidth;
 
   const holdButtonSize = Math.max(itemScale * 0.8, 0.4);
   const holdButtonHeight = holdButtonSize * 0.32;
@@ -164,9 +164,6 @@ const App = () => {
           enablePan={false}
         />
       </Canvas>
-      <div className="hud-overlay">
-        <GameHud />
-      </div>
     </div>
   );
 };

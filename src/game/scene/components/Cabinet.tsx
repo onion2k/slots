@@ -11,7 +11,7 @@ type CabinetGeometry = Pick<
   | "topFrontFrame"
   | "bottomFrontFrame"
   | "sideFrontFrame"
-  | "topDisplay"
+  | "dotMatrixSupport"
   | "lowerCabinet"
 >;
 
@@ -29,8 +29,9 @@ type CabinetShellLayout = Pick<
   | "topBarY"
   | "cabinetFrontZ"
   | "bottomBarY"
-  | "topDisplayY"
-  | "topDisplayZ"
+  | "dotMatrixSupportOffsetX"
+  | "dotMatrixSupportY"
+  | "dotMatrixSupportZ"
   | "lowerCabinetCenterY"
   | "lowerCabinetCenterZ"
 >;
@@ -125,10 +126,26 @@ export const Cabinet = ({ geometry, materials, layout, ...groupProps }: CabinetP
         receiveShadow
       />
       <StaticMesh
-        name="cabinetTopDisplay"
-        geometry={geometry.topDisplay}
+        name="cabinetDotMatrixSupportLeft"
+        geometry={geometry.dotMatrixSupport}
         material={materials.cabinetMaterial}
-        position={[0, layout.topDisplayY, layout.topDisplayZ]}
+        position={[
+          -layout.dotMatrixSupportOffsetX,
+          layout.dotMatrixSupportY,
+          layout.dotMatrixSupportZ
+        ]}
+        castShadow
+        receiveShadow
+      />
+      <StaticMesh
+        name="cabinetDotMatrixSupportRight"
+        geometry={geometry.dotMatrixSupport}
+        material={materials.cabinetMaterial}
+        position={[
+          layout.dotMatrixSupportOffsetX,
+          layout.dotMatrixSupportY,
+          layout.dotMatrixSupportZ
+        ]}
         castShadow
         receiveShadow
       />

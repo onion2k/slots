@@ -12,8 +12,8 @@ export interface CabinetGeometryBundle {
   topFrontFrame: BufferGeometry;
   bottomFrontFrame: BufferGeometry;
   sideFrontFrame: BufferGeometry;
-  topDisplay: BufferGeometry;
   dotMatrix: BufferGeometry;
+  dotMatrixSupport: BufferGeometry;
   lowerCabinet: BufferGeometry;
   buttonPanelSurface: BufferGeometry;
   holdButton: BufferGeometry;
@@ -46,6 +46,9 @@ export interface CabinetLayout {
   bottomBarY: number;
   topSectionHeight: number;
   bottomSectionHeight: number;
+  dotMatrixSupportOffsetX: number;
+  dotMatrixSupportY: number;
+  dotMatrixSupportZ: number;
   buttonPanelPivotY: number;
   buttonPanelPivotZ: number;
   buttonPanelThickness: number;
@@ -96,11 +99,12 @@ export const CabinetMeshes = ({
         material={materials.dotMatrixMaterial}
         position={[0, layout.topDisplayY, layout.dotMatrixZ]}
         effect={"none"}
-        message={"DOUGHPAMINE"}
+        message={"PRESS SPIN TO PLAY"}
         animationMode={"sine-wave"}
-        sineWaveAmplitude={1}
-        sineWaveFrequency={0.25}
-        sineWaveSpeed={12}
+        doubleCharacterResolution={true}
+        sineWaveAmplitude={5}
+        sineWaveFrequency={0.1}
+        sineWaveSpeed={6}
         scrollSpeed={30}
       />
       <CabinetButtonPanel

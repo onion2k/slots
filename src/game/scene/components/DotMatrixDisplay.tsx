@@ -10,8 +10,8 @@ import {
 } from "three";
 import { StaticMesh, type StaticMeshProps } from "./StaticMesh";
 
-const PIXEL_COLUMNS = 48;
-const PIXEL_ROWS = 16;
+const PIXEL_COLUMNS = 96;
+const PIXEL_ROWS = 32;
 const FONT_HEIGHT = 7;
 const CHARACTER_WIDTH = 5;
 const CHARACTER_SPACING = 1;
@@ -28,7 +28,8 @@ export type DotMatrixAnimationMode =
   | "horizontal-scroll"
   | "static"
   | "vertical-scroll"
-  | "sine-wave";
+  | "sine-wave"
+  | "alternate";
 
 export type DotMatrixEffect = "none" | "fireworks" | "confetti" | "wipe";
 
@@ -59,7 +60,7 @@ interface EffectState {
   wipe: WipeState;
 }
 
-const DEFAULT_MESSAGE = "BREADWINNER!";
+const DEFAULT_MESSAGE = "DEFAULT MESSAGE";
 const DEFAULT_SCROLL_SPEED = 30; // columns per second
 const DEFAULT_ANIMATION_MODE: DotMatrixAnimationMode = "horizontal-scroll";
 const DEFAULT_VERTICAL_SCROLL_SPEED = 6; // rows per second
@@ -72,11 +73,6 @@ const DEFAULT_WIPE_SPEED = 22; // columns per second
 const VERTICAL_SCROLL_TRAILING_ROWS = PIXEL_ROWS;
 const WIPE_OVERTRAVEL = 4;
 const WIPE_GLOW_WIDTH = 2;
-
-const MAX_SINE_AMPLITUDE = Math.max(
-  0,
-  Math.floor((PIXEL_ROWS - FONT_HEIGHT) / 2)
-);
 
 const RAW_FONT: Record<string, string[]> = {
   " ": [
@@ -492,6 +488,7 @@ export interface DotMatrixDisplayProps extends Omit<StaticMeshProps, "name"> {
   effect?: DotMatrixEffect;
   effectIntensity?: number;
   wipeSpeed?: number;
+  doubleCharacterResolution?: boolean;
 }
 
 export const DotMatrixDisplay = ({
@@ -507,8 +504,13 @@ export const DotMatrixDisplay = ({
   effect = DEFAULT_EFFECT,
   effectIntensity = DEFAULT_EFFECT_INTENSITY,
   wipeSpeed = DEFAULT_WIPE_SPEED,
+  doubleCharacterResolution = false,
   ...groupProps
 }: DotMatrixDisplayProps) => {
+  const characterScale = doubleCharacterResolution ? 2 : 1;
+  const glyphHeight = FONT_HEIGHT * characterScale;
+  const lineSpacing = Math.max(characterScale, 1);
+
   const bounds = useMemo(() => {
     geometry.computeBoundingBox();
     const boundingBox = geometry.boundingBox;
@@ -595,38 +597,76 @@ export const DotMatrixDisplay = ({
     };
   }, [pixelPlaneMaterial]);
 
-  const centeredVerticalOffset = useMemo(() => {
-    return Math.max(Math.floor((PIXEL_ROWS - FONT_HEIGHT) / 2), 0);
-  }, []);
+  const messageLines = useMemo(() => {
+    const normalizedLines = message
+      .toUpperCase()
+      .split(/\r?\n/)
+      .slice(0, 2);
+    if (normalizedLines.length === 0) {
+      return [""];
+    }
+    return normalizedLines;
+  }, [message]);
+
+  const centeredVerticalOffsets = useMemo(() => {
+    const count = Math.max(messageLines.length, 1);
+    const totalTextHeight =
+      count * glyphHeight + Math.max(0, count - 1) * lineSpacing;
+    const top = Math.max(Math.floor((PIXEL_ROWS - totalTextHeight) / 2), 0);
+    return new Array(count)
+      .fill(0)
+      .map((_, index) => top + index * (glyphHeight + lineSpacing));
+  }, [glyphHeight, lineSpacing, messageLines.length]);
 
   const trailingColumnCount = animationMode === "static" ? 0 : TRAILING_BLANK_COLUMNS;
 
-  const messageColumns = useMemo(() => {
-    const normalizedMessage = message.toUpperCase();
-    const columns: number[] = [];
+  const messageLineColumns = useMemo(() => {
+    const lines = messageLines.length > 0 ? messageLines : [""];
+    const scaledSpacing = CHARACTER_SPACING * characterScale;
 
-    for (const character of normalizedMessage) {
-      const glyph = DOT_MATRIX_FONT[character] ?? EMPTY_GLYPH;
-      columns.push(...glyph);
-      for (let i = 0; i < CHARACTER_SPACING; i += 1) {
+    return lines.map((line) => {
+      const columns: number[] = [];
+
+      for (const character of line) {
+        const glyph = DOT_MATRIX_FONT[character] ?? EMPTY_GLYPH;
+        for (const column of glyph) {
+          for (let scaleIndex = 0; scaleIndex < characterScale; scaleIndex += 1) {
+            columns.push(column);
+          }
+        }
+        for (let i = 0; i < scaledSpacing; i += 1) {
+          columns.push(0);
+        }
+      }
+
+      for (let i = 0; i < trailingColumnCount; i += 1) {
         columns.push(0);
       }
-    }
 
-    for (let i = 0; i < trailingColumnCount; i += 1) {
-      columns.push(0);
-    }
+      if (columns.length === 0) {
+        for (let i = 0; i < PIXEL_COLUMNS; i += 1) {
+          columns.push(0);
+        }
+      }
 
-    if (columns.length === 0) {
-      return new Array(PIXEL_COLUMNS).fill(0);
-    }
+      return columns;
+    });
+  }, [characterScale, messageLines, trailingColumnCount]);
 
-    return columns;
-  }, [message, trailingColumnCount]);
+  const longestLineLength = useMemo(() => {
+    return messageLineColumns.reduce(
+      (max, columns) => Math.max(max, columns.length),
+      0
+    );
+  }, [messageLineColumns]);
+
+  const maxSineAmplitude = useMemo(() => {
+    return Math.max(0, Math.floor((PIXEL_ROWS - glyphHeight) / 2));
+  }, [glyphHeight]);
 
   const normalizedSineAmplitude = Math.min(
     Math.max(sineWaveAmplitude, 0),
-    MAX_SINE_AMPLITUDE
+    maxSineAmplitude
   );
   const normalizedSineFrequency = Math.max(sineWaveFrequency, 0);
   const normalizedSineSpeed = sineWaveSpeed;
@@ -636,9 +676,11 @@ export const DotMatrixDisplay = ({
 
   const columnOffsetRef = useRef(0);
   const columnAccumulatorRef = useRef(0);
-  const verticalOffsetRef = useRef(centeredVerticalOffset);
+  const verticalOffsetRef = useRef(centeredVerticalOffsets[0] ?? 0);
   const verticalAccumulatorRef = useRef(0);
   const wavePhaseRef = useRef(0);
+  const lineOffsetRef = useRef<number[]>([]);
+  const lineAccumulatorRef = useRef<number[]>([]);
   const effectStateRef = useRef<EffectState>({
     fireworks: [],
     confetti: [],
@@ -701,35 +743,54 @@ export const DotMatrixDisplay = ({
     context.fillStyle = BACKGROUND_COLOR;
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    const totalColumns = messageColumns.length;
-    const baseVerticalOffset =
-      animationMode === "vertical-scroll"
-        ? verticalOffsetRef.current
-        : centeredVerticalOffset;
+    const totalColumns = longestLineLength;
+    const lineCount = Math.max(messageLineColumns.length, 1);
     const effectState = effectStateRef.current;
 
     for (let x = 0; x < PIXEL_COLUMNS; x += 1) {
       let columnIndex = -1;
-      let messageColumn = 0;
+      if (
+        totalColumns > 0 &&
+        animationMode !== "static" &&
+        animationMode !== "alternate"
+      ) {
+        columnIndex =
+          ((columnOffsetRef.current + x) % totalColumns + totalColumns) %
+          totalColumns;
+      }
 
-      if (totalColumns > 0) {
+      const lineColumnsAtX = new Array(lineCount).fill(0);
+      for (let lineIndex = 0; lineIndex < lineCount; lineIndex += 1) {
+        const lineColumns = messageLineColumns[lineIndex] ?? [];
+        let messageColumn = 0;
+
         if (animationMode === "static") {
-          if (totalColumns <= PIXEL_COLUMNS) {
-            const leftPadding = Math.floor((PIXEL_COLUMNS - totalColumns) / 2);
-            if (x >= leftPadding && x < leftPadding + totalColumns) {
-              columnIndex = x - leftPadding;
+          const lineLength = lineColumns.length;
+          if (lineLength > 0) {
+            if (lineLength <= PIXEL_COLUMNS) {
+              const leftPadding = Math.floor((PIXEL_COLUMNS - lineLength) / 2);
+              if (x >= leftPadding && x < leftPadding + lineLength) {
+                messageColumn = lineColumns[x - leftPadding];
+              }
+            } else {
+              const start = Math.floor((lineLength - PIXEL_COLUMNS) / 2);
+              const index = Math.min(start + x, lineLength - 1);
+              messageColumn = lineColumns[index];
             }
-          } else {
-            const start = Math.floor((totalColumns - PIXEL_COLUMNS) / 2);
-            columnIndex = Math.min(start + x, totalColumns - 1);
           }
-        } else {
-          columnIndex = ((columnOffsetRef.current + x) % totalColumns + totalColumns) % totalColumns;
+        } else if (animationMode === "alternate") {
+          const lineLength = lineColumns.length;
+          if (lineLength > 0) {
+            const offset = lineOffsetRef.current[lineIndex] ?? 0;
+            const index =
+              ((offset + x) % lineLength + lineLength) % lineLength;
+            messageColumn = lineColumns[index];
+          }
+        } else if (columnIndex >= 0 && columnIndex < lineColumns.length) {
+          messageColumn = lineColumns[columnIndex];
         }
 
-        if (columnIndex >= 0 && columnIndex < totalColumns) {
-          messageColumn = messageColumns[columnIndex];
-        }
+        lineColumnsAtX[lineIndex] = messageColumn;
       }
 
       const waveOffset =
@@ -741,16 +802,31 @@ export const DotMatrixDisplay = ({
             )
           : 0;
 
-      const columnTop = Math.round(baseVerticalOffset + waveOffset);
+      const lineColumnTops = new Array(lineCount).fill(0);
+      for (let lineIndex = 0; lineIndex < lineCount; lineIndex += 1) {
+        const baseOffset =
+        animationMode === "vertical-scroll"
+            ? verticalOffsetRef.current +
+              lineIndex * (glyphHeight + lineSpacing)
+            : centeredVerticalOffsets[lineIndex] ??
+              centeredVerticalOffsets[0] ??
+              0;
+        lineColumnTops[lineIndex] = Math.round(baseOffset + waveOffset);
+      }
 
       for (let y = 0; y < PIXEL_ROWS; y += 1) {
         let isMessagePixel = false;
 
-        if (columnIndex >= 0) {
+        for (let lineIndex = 0; lineIndex < lineCount; lineIndex += 1) {
+          const columnTop = lineColumnTops[lineIndex];
           const relativeY = y - columnTop;
-          if (relativeY >= 0 && relativeY < FONT_HEIGHT) {
-            const glyphRow = FONT_HEIGHT - 1 - relativeY;
-            isMessagePixel = (messageColumn & (1 << glyphRow)) !== 0;
+          if (relativeY >= 0 && relativeY < glyphHeight) {
+            const scaledRow = Math.floor(relativeY / characterScale);
+            const glyphRow = FONT_HEIGHT - 1 - scaledRow;
+            if ((lineColumnsAtX[lineIndex] & (1 << glyphRow)) !== 0) {
+              isMessagePixel = true;
+              break;
+            }
           }
         }
 
@@ -817,9 +893,13 @@ export const DotMatrixDisplay = ({
     texture.needsUpdate = true;
   }, [
     animationMode,
-    centeredVerticalOffset,
+    centeredVerticalOffsets,
+    characterScale,
     effect,
-    messageColumns,
+    glyphHeight,
+    lineSpacing,
+    longestLineLength,
+    messageLineColumns,
     normalizedSineAmplitude,
     normalizedSineFrequency,
     textureState
@@ -912,18 +992,28 @@ export const DotMatrixDisplay = ({
     columnAccumulatorRef.current = 0;
     verticalAccumulatorRef.current = 0;
     wavePhaseRef.current = 0;
+    if (animationMode === "alternate") {
+      const lineCount = Math.max(messageLineColumns.length, 1);
+      lineOffsetRef.current = new Array(lineCount).fill(0);
+      lineAccumulatorRef.current = new Array(lineCount).fill(0);
+    } else {
+      lineOffsetRef.current = [];
+      lineAccumulatorRef.current = [];
+    }
     verticalOffsetRef.current =
       animationMode === "vertical-scroll"
-        ? PIXEL_ROWS + FONT_HEIGHT
-        : centeredVerticalOffset;
+        ? PIXEL_ROWS + glyphHeight
+        : centeredVerticalOffsets[0] ?? 0;
     initializeEffectState();
     drawPixels();
   }, [
     animationMode,
-    centeredVerticalOffset,
+    centeredVerticalOffsets,
     drawPixels,
+    glyphHeight,
     initializeEffectState,
-    messageColumns
+    longestLineLength,
+    messageLineColumns
   ]);
 
   useEffect(() => {
@@ -942,7 +1032,7 @@ export const DotMatrixDisplay = ({
     }
 
     let needsRedraw = false;
-    const totalColumns = messageColumns.length;
+    const totalColumns = longestLineLength;
 
     if (
       (animationMode === "horizontal-scroll" || animationMode === "sine-wave") &&
@@ -954,9 +1044,48 @@ export const DotMatrixDisplay = ({
       if (columnAccumulatorRef.current >= 1) {
         const steps = Math.floor(columnAccumulatorRef.current);
         columnAccumulatorRef.current -= steps;
-        columnOffsetRef.current =
-          (columnOffsetRef.current + steps) % totalColumns;
+        if (totalColumns > 0) {
+          columnOffsetRef.current =
+            (columnOffsetRef.current + steps) % totalColumns;
+        }
         needsRedraw = true;
+      }
+    }
+
+    if (animationMode === "alternate" && scrollSpeed > 0) {
+      const lineCount = Math.max(messageLineColumns.length, 1);
+      if (lineOffsetRef.current.length < lineCount) {
+        lineOffsetRef.current = [
+          ...lineOffsetRef.current,
+          ...new Array(lineCount - lineOffsetRef.current.length).fill(0)
+        ];
+      }
+      if (lineAccumulatorRef.current.length < lineCount) {
+        lineAccumulatorRef.current = [
+          ...lineAccumulatorRef.current,
+          ...new Array(lineCount - lineAccumulatorRef.current.length).fill(0)
+        ];
+      }
+
+      for (let lineIndex = 0; lineIndex < lineCount; lineIndex += 1) {
+        const lineColumns = messageLineColumns[lineIndex] ?? [];
+        const lineLength = lineColumns.length;
+        if (lineLength === 0) {
+          continue;
+        }
+
+        lineAccumulatorRef.current[lineIndex] += delta * scrollSpeed;
+
+        if (lineAccumulatorRef.current[lineIndex] >= 1) {
+          const steps = Math.floor(lineAccumulatorRef.current[lineIndex]);
+          lineAccumulatorRef.current[lineIndex] -= steps;
+          const direction = lineIndex % 2 === 0 ? 1 : -1;
+          const nextOffset =
+            (lineOffsetRef.current[lineIndex] ?? 0) + direction * steps;
+          lineOffsetRef.current[lineIndex] =
+            ((nextOffset % lineLength) + lineLength) % lineLength;
+          needsRedraw = true;
+        }
       }
     }
 
@@ -968,10 +1097,10 @@ export const DotMatrixDisplay = ({
         verticalAccumulatorRef.current -= steps;
         verticalOffsetRef.current -= steps;
 
-        const minimumOffset = -FONT_HEIGHT - VERTICAL_SCROLL_TRAILING_ROWS;
+        const minimumOffset = -glyphHeight - VERTICAL_SCROLL_TRAILING_ROWS;
         if (verticalOffsetRef.current < minimumOffset) {
           const wrapRange =
-            PIXEL_ROWS + FONT_HEIGHT + VERTICAL_SCROLL_TRAILING_ROWS;
+            PIXEL_ROWS + glyphHeight + VERTICAL_SCROLL_TRAILING_ROWS;
           verticalOffsetRef.current += wrapRange;
         }
 
@@ -1006,6 +1135,7 @@ export const DotMatrixDisplay = ({
   return (
     <group name="dotMatrixDisplay" {...groupProps}>
       <StaticMesh
+        name="dotMatrixDisplayContainer"
         geometry={geometry}
         material={material}
         castShadow
