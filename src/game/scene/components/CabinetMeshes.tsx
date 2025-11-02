@@ -17,7 +17,6 @@ export interface CabinetGeometryBundle {
   lowerCabinet: BufferGeometry;
   buttonPanelSurface: BufferGeometry;
   holdButton: BufferGeometry;
-  actionButton: BufferGeometry;
   spinButton: BufferGeometry;
   spinDisplay: BufferGeometry;
 }
@@ -27,7 +26,6 @@ export interface CabinetMaterials {
   dotMatrixMaterial: MeshStandardMaterial;
   lowerCabinetMaterial: MeshStandardMaterial;
   holdButtonMaterial: MeshStandardMaterial;
-  collectButtonMaterial: MeshStandardMaterial;
   spinButtonMaterial: MeshStandardMaterial;
   spinDisplayMaterial: MeshStandardMaterial;
 }
@@ -63,8 +61,10 @@ export interface CabinetLayout {
   holdRowZ: number;
   actionButtonY: number;
   actionRowZ: number;
-  collectButtonX: number;
   spinButtonX: number;
+  spinButtonWidth: number;
+  spinButtonHeight: number;
+  spinButtonDepth: number;
   spinDisplayX: number;
   spinDisplayY: number;
   spinDisplayZ: number;

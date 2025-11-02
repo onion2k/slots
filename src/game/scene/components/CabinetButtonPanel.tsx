@@ -1,20 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Text } from "@react-three/drei";
-import { type GroupProps, type ThreeEvent } from "@react-three/fiber";
+import { useFrame, type GroupProps, type ThreeEvent } from "@react-three/fiber";
 import { useSlotsStore } from "@game/state/slotsStore";
 import type { CabinetGeometryBundle, CabinetLayout, CabinetMaterials } from "./CabinetMeshes";
 import { StaticMesh } from "./StaticMesh";
 
 type ButtonPanelGeometry = Pick<
   CabinetGeometryBundle,
-  "buttonPanelSurface" | "holdButton" | "actionButton" | "spinButton" | "spinDisplay"
+  "buttonPanelSurface" | "holdButton" | "spinButton" | "spinDisplay"
 >;
 
 type ButtonPanelMaterials = Pick<
   CabinetMaterials,
   | "cabinetMaterial"
   | "holdButtonMaterial"
-  | "collectButtonMaterial"
   | "spinButtonMaterial"
   | "spinDisplayMaterial"
 >;
@@ -30,8 +29,10 @@ type ButtonPanelLayout = Pick<
   | "holdRowZ"
   | "actionButtonY"
   | "actionRowZ"
-  | "collectButtonX"
   | "spinButtonX"
+  | "spinButtonWidth"
+  | "spinButtonHeight"
+  | "spinButtonDepth"
   | "spinDisplayX"
   | "spinDisplayY"
   | "spinDisplayZ"
@@ -71,20 +72,25 @@ export const CabinetButtonPanel = ({
   const defaultSpinColorRef = useRef(spinButtonMaterial.color.clone());
   const defaultSpinEmissiveRef = useRef(spinButtonMaterial.emissive.clone());
   const defaultSpinEmissiveIntensityRef = useRef(spinButtonMaterial.emissiveIntensity);
+  const flashHighlightColorRef = useRef(spinButtonMaterial.color.clone());
+  const flashPhaseRef = useRef(Math.random() * Math.PI * 2);
 
   useEffect(() => {
     defaultSpinColorRef.current.copy(spinButtonMaterial.color);
     defaultSpinEmissiveRef.current.copy(spinButtonMaterial.emissive);
     defaultSpinEmissiveIntensityRef.current = spinButtonMaterial.emissiveIntensity;
+    flashHighlightColorRef.current
+      .copy(defaultSpinColorRef.current)
+      .offsetHSL(0, 0, 0.18);
   }, [spinButtonMaterial]);
 
   useEffect(() => {
     if (isSpinPressed) {
-      spinButtonMaterial.color.set("#ff7b45");
-      spinButtonMaterial.emissive.set("#ff6a2a");
+      spinButtonMaterial.color.set("#ffd6d6");
+      spinButtonMaterial.emissive.set("#ff5a47");
       spinButtonMaterial.emissiveIntensity = Math.max(
-        defaultSpinEmissiveIntensityRef.current * 2.8,
-        defaultSpinEmissiveIntensityRef.current + 0.6
+        defaultSpinEmissiveIntensityRef.current * 3.2,
+        defaultSpinEmissiveIntensityRef.current + 1.2
       );
     } else {
       spinButtonMaterial.color.copy(defaultSpinColorRef.current);
@@ -102,9 +108,35 @@ export const CabinetButtonPanel = ({
     };
   }, [isSpinPressed, spinButtonMaterial]);
 
+  useFrame((_, delta) => {
+    if (isSpinPressed) {
+      return;
+    }
+
+    if (!canSpin) {
+      spinButtonMaterial.emissiveIntensity = defaultSpinEmissiveIntensityRef.current;
+      spinButtonMaterial.color.copy(defaultSpinColorRef.current);
+      return;
+    }
+
+    flashPhaseRef.current += delta * 4.2;
+    const pulse = (Math.sin(flashPhaseRef.current) + 1) / 2;
+    spinButtonMaterial.color.lerpColors(
+      defaultSpinColorRef.current,
+      flashHighlightColorRef.current,
+      pulse
+    );
+    spinButtonMaterial.emissiveIntensity =
+      defaultSpinEmissiveIntensityRef.current + pulse * 2.4;
+  });
+
   const spinPressDepth = layout.buttonPanelThickness * 0.35;
   const holdPressDepth = layout.buttonPanelThickness * 0.3;
   const holdLatchDepth = layout.buttonPanelThickness * 0.18;
+  const spinButtonPressOffset = isSpinPressed ? spinPressDepth : 0;
+  const spinLabelBaseOffset = layout.spinButtonHeight / 2 + layout.spinButtonHeight * 0.12;
+  const spinLabelFontSize = Math.min(layout.spinButtonWidth, layout.spinButtonDepth) * 0.55;
+  const spinLabelOutlineWidth = Math.min(layout.spinButtonWidth, layout.spinButtonDepth) * 0.08;
 
   const handleSpinPointerDown = useCallback(
     (event: ThreeEvent<PointerEvent>) => {
@@ -190,38 +222,54 @@ export const CabinetButtonPanel = ({
             />
           ))}
         </group>
-        <StaticMesh
-          name="collectButton"
-          geometry={geometry.actionButton}
-          material={materials.collectButtonMaterial}
-          position={[layout.collectButtonX, layout.actionButtonY, layout.actionRowZ]}
-          castShadow
-          receiveShadow
-        />
         <group name="spinControlsCluster">
-          <StaticMesh
+          <group
             name="spinButton"
-            geometry={geometry.spinButton}
-            material={materials.spinButtonMaterial}
-            position={[
-              layout.spinButtonX,
-              layout.actionButtonY - (isSpinPressed ? spinPressDepth : 0),
-              layout.actionRowZ
-            ]}
-            onPointerDown={handleSpinPointerDown}
-            onPointerUp={handleSpinPointerUp}
-            onPointerOut={handleSpinPointerOut}
-            onPointerLeave={handleSpinPointerOut}
-            onPointerCancel={handleSpinPointerOut}
-            castShadow
-            receiveShadow
-          />
-          <SpinCreditDisplay
-            geometry={geometry.spinDisplay}
-            material={materials.spinDisplayMaterial}
-            layout={layout}
-            credits={credits}
-          />
+            // eslint-disable-next-line react/no-unknown-property
+            position={[layout.spinButtonX, layout.actionButtonY, layout.actionRowZ]}
+          >
+            <StaticMesh
+              name="spinButtonBody"
+              geometry={geometry.spinButton}
+              material={materials.spinButtonMaterial}
+              position={[0, -spinButtonPressOffset, 0]}
+              onPointerDown={handleSpinPointerDown}
+              onPointerUp={handleSpinPointerUp}
+              onPointerOut={handleSpinPointerOut}
+              onPointerLeave={handleSpinPointerOut}
+              onPointerCancel={handleSpinPointerOut}
+              castShadow
+              receiveShadow
+            />
+            <Text
+              position={[
+                0,
+                spinLabelBaseOffset - spinButtonPressOffset,
+                0
+              ]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              fontSize={spinLabelFontSize}
+              maxWidth={layout.spinButtonWidth * 0.9}
+              anchorX="center"
+              anchorY="middle"
+              color="#ffffff"
+              outlineWidth={spinLabelOutlineWidth}
+              outlineColor="#320000"
+              onPointerDown={handleSpinPointerDown}
+              onPointerUp={handleSpinPointerUp}
+              onPointerOut={handleSpinPointerOut}
+              onPointerLeave={handleSpinPointerOut}
+              onPointerCancel={handleSpinPointerOut}
+            >
+              SPIN
+            </Text>
+            <SpinCreditDisplay
+              geometry={geometry.spinDisplay}
+              material={materials.spinDisplayMaterial}
+              layout={layout}
+              credits={credits}
+            />
+          </group>
         </group>
       </group>
     </group>
@@ -349,15 +397,17 @@ interface SpinCreditDisplayProps {
 }
 
 const SpinCreditDisplay = ({ geometry, material, layout, credits }: SpinCreditDisplayProps) => {
-  const textFontSize = layout.spinDisplayHeight * 0.42;
-  const textOutlineWidth = layout.spinDisplayHeight * 0.05;
-  const textZOffset = layout.spinDisplayDepth / 2 + 0.002;
+  const textFontSize = layout.spinDisplayHeight * 0.58;
+  const textOutlineWidth = layout.spinDisplayHeight * 0.08;
+  const textOffset = layout.spinDisplayDepth / 2 + 0.004;
 
   return (
     <group
       name="spinCreditsDisplay"
       // eslint-disable-next-line react/no-unknown-property
-      position={[layout.spinDisplayX, layout.spinDisplayY, layout.spinDisplayZ]}
+      position={[-2,0,0]}
+      // eslint-disable-next-line react/no-unknown-property
+      rotation={[-(Math.PI / 2), 0, 0]}
     >
       <StaticMesh
         name="spinCreditsDisplayBody"
@@ -367,13 +417,13 @@ const SpinCreditDisplay = ({ geometry, material, layout, credits }: SpinCreditDi
         receiveShadow
       />
       <Text
-        position={[0, 0, textZOffset]}
+        position={[0, 0, textOffset]}
         fontSize={textFontSize}
-        maxWidth={layout.spinDisplayWidth * 0.85}
+        maxWidth={layout.spinDisplayWidth * 0.92}
         color="#f6fbff"
         anchorX="center"
         anchorY="middle"
-        lineHeight={1.1}
+        lineHeight={1.05}
         outlineWidth={textOutlineWidth}
         outlineColor="#0b1017"
       >

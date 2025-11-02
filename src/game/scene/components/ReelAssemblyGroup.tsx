@@ -160,19 +160,16 @@ export const ReelAssemblyGroup = ({
       actionRowZ - (spinButtonSize + holdButtonSize) * 0.75
     );
 
-    const collectButtonMargin = actionButtonSize * 0.2;
-    const collectButtonX = -buttonPanelWidth / 2 + collectButtonMargin + actionButtonWidth / 2;
-
     const spinButtonMargin = spinButtonSize * 0.2;
     const spinButtonX = buttonPanelWidth / 2 - (spinButtonMargin + spinButtonWidth / 2);
 
-    const spinDisplayWidth = spinButtonWidth * 0.65;
-    const spinDisplayHeight = spinButtonHeight * 0.8;
-    const spinDisplayDepth = spinButtonSize * 0.28;
-    const spinDisplayMargin = spinButtonSize * 0.25;
+    const spinDisplayWidth = spinButtonWidth * 1.1;
+    const spinDisplayHeight = spinButtonHeight * 1.6;
+    const spinDisplayDepth = spinButtonSize * 0.36;
+    const spinDisplayMargin = spinButtonSize * 0.18;
     const spinDisplayX =
       spinButtonX - (spinButtonWidth / 2 + spinDisplayMargin + spinDisplayWidth / 2);
-    const spinDisplayY = actionButtonY;
+    const spinDisplayY = actionButtonY + spinDisplayHeight * 0.1;
     const spinDisplayZ = actionRowZ;
 
     return {
@@ -264,8 +261,7 @@ export const ReelAssemblyGroup = ({
           height: actionButtonHeight,
           width: actionButtonWidth,
           y: actionButtonY,
-          rowZ: actionRowZ,
-          collectX: collectButtonX
+          rowZ: actionRowZ
         },
         spin: {
           size: spinButtonSize,
@@ -368,11 +364,6 @@ export const ReelAssemblyGroup = ({
         buttons.hold.height,
         buttons.hold.size
       ),
-      actionButton: new BoxGeometry(
-        buttons.action.width,
-        buttons.action.height,
-        buttons.action.size
-      ),
       spinButton: new BoxGeometry(
         buttons.spin.width,
         buttons.spin.height,
@@ -413,7 +404,6 @@ export const ReelAssemblyGroup = ({
     lowerCabinet: geometries.lowerCabinet,
     buttonPanelSurface: geometries.buttonPanelSurface,
     holdButton: geometries.holdButton,
-    actionButton: geometries.actionButton,
     spinButton: geometries.spinButton,
     spinDisplay: geometries.spinDisplay
   };
@@ -449,8 +439,10 @@ export const ReelAssemblyGroup = ({
     holdRowZ: buttons.hold.rowZ,
     actionButtonY: buttons.action.y,
     actionRowZ: buttons.action.rowZ,
-    collectButtonX: buttons.action.collectX,
     spinButtonX: buttons.spin.x,
+    spinButtonWidth: buttons.spin.width,
+    spinButtonHeight: buttons.spin.height,
+    spinButtonDepth: buttons.spin.size,
     spinDisplayX: buttons.spinDisplay.x,
     spinDisplayY: buttons.spinDisplay.y,
     spinDisplayZ: buttons.spinDisplay.z,

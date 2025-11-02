@@ -8,11 +8,18 @@ import {
 } from "react";
 import "@styles/app.css";
 import { FruitMachineScene } from "@game/scene/FruitMachineScene";
-import { OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls } from "@react-three/drei";
+import {
+  Bloom,
+  EffectComposer,
+  Noise,
+  SSAO,
+  Vignette
+} from "@react-three/postprocessing";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { FruitMachineConfig } from "@game/core/fruitMachineConfig";
 import { useSlotsStore } from "@game/state/slotsStore";
-import { Color } from "three";
+import { Color, FogExp2 } from "three";
 
 interface TopHalfMetrics {
   topHalfCenterWorldY: number;
@@ -151,11 +158,13 @@ const App = () => {
         camera={{ position: [0, 2, 30], fov: 50, near: 0.1, far: 150 }}
         shadows
       >
-        <SceneBackground color={backgroundColor} />
+        <SceneAtmosphere color={backgroundColor} />
         <Suspense fallback={null}>
+          <Environment preset="warehouse" />
           <FruitMachineScene />
         </Suspense>
         <ResponsiveCameraRig controlsRef={controlsRef} config={config} />
+        <SceneEffects />
         <OrbitControls
           ref={controlsRef}
           makeDefault
@@ -173,18 +182,37 @@ type ResponsiveCameraRigProps = {
   config: FruitMachineConfig;
 };
 
-const SceneBackground = ({ color }: { color: Color }) => {
+const SceneAtmosphere = ({ color }: { color: Color }) => {
   const { scene } = useThree();
 
   useEffect(() => {
     const previous = scene.background;
+    const previousFog = scene.fog;
     scene.background = color;
+    scene.fog = new FogExp2(color.clone().multiplyScalar(0.9), 0.045);
     return () => {
       scene.background = previous;
+      scene.fog = previousFog ?? null;
     };
   }, [color, scene]);
 
   return null;
+};
+
+const SceneEffects = () => {
+  return (
+    <EffectComposer multisampling={0}>
+      <SSAO radius={0.25} intensity={32} luminanceInfluence={0.4} />
+      <Bloom
+        intensity={0.7}
+        luminanceThreshold={0.55}
+        luminanceSmoothing={0.45}
+        mipmapBlur
+      />
+      <Noise premultiply opacity={0.08} />
+      <Vignette eskil offset={0.2} darkness={0.75} />
+    </EffectComposer>
+  );
 };
 
 const ResponsiveCameraRig = ({ controlsRef, config }: ResponsiveCameraRigProps) => {
