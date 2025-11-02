@@ -12,6 +12,7 @@ import { Environment, OrbitControls } from "@react-three/drei";
 import {
   Bloom,
   EffectComposer,
+  NormalPass,
   Noise,
   SSAO,
   Vignette
@@ -202,6 +203,7 @@ const SceneAtmosphere = ({ color }: { color: Color }) => {
 const SceneEffects = () => {
   return (
     <EffectComposer multisampling={0}>
+      <NormalPass />
       <SSAO radius={0.25} intensity={32} luminanceInfluence={0.2} />
       <Bloom
         intensity={3.25}

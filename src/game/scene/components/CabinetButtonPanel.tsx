@@ -88,10 +88,10 @@ export const CabinetButtonPanel = ({
   useEffect(() => {
     if (isSpinPressed) {
       spinButtonMaterial.color.set("#fff1f1");
-      spinButtonMaterial.emissive.set("#ff7a63");
+      spinButtonMaterial.emissive.set("#ff2525ff");
       spinButtonMaterial.emissiveIntensity = Math.max(
-        defaultSpinEmissiveIntensityRef.current * 4.2,
-        defaultSpinEmissiveIntensityRef.current + 2.1
+        defaultSpinEmissiveIntensityRef.current * 0.5,
+        defaultSpinEmissiveIntensityRef.current
       );
     } else {
       spinButtonMaterial.color.copy(defaultSpinColorRef.current);
