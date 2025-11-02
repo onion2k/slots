@@ -1,18 +1,17 @@
 import type { ComponentType } from "react";
-import { ItemCroissant, ItemPieCherry, ItemDonut, ItemBread, ItemBreadRoll, ItemBreadSlice, ItemCakeBirthdaySlice, ItemCakeChocolateSlice, ItemCupcake } from "@game/assets";
-
+import { SYMBOL_DEFINITIONS } from "./symbolDefinitions";
 
 export type SymbolId =
-  | "cherry"
-  | "lemon"
-  | "plum"
-  | "bell"
-  | "seven"
-  | "diamond";
+  | "symbol1"
+  | "symbol2"
+  | "symbol3"
+  | "symbol4"
+  | "symbol5"
+  | "symbol6";
 
-export type SymbolGeometry = "box" | "sphere" | "model";
+export type SymbolGeometry = "model";
 
-export type SymbolModelProps = {
+export interface SymbolModelProps {
   castShadow?: boolean;
   receiveShadow?: boolean;
   scale: number;
@@ -56,75 +55,12 @@ export interface FruitMachineConfig {
   winLines: WinLine[];
 }
 
-const SYMBOL_DEFINITIONS: Record<SymbolId, SymbolDefinition> = {
-  cherry: {
-    id: "cherry",
-    label: "Cherry",
-    geometry: "model",
-    color: "#ff4d6d",
-    payout: 10,
-    model: {
-      Component: ItemPieCherry
-    }
-  },
-  lemon: {
-    id: "lemon",
-    label: "Croissant",
-    geometry: "model",
-    color: "#f9d923",
-    payout: 8,
-    model: {
-      Component: ItemCroissant
-    }
-  },
-  plum: {
-    id: "plum",
-    label: "Donut",
-    geometry: "model",
-    color: "#924da3",
-    payout: 12,
-    model: {
-      Component: ItemDonut
-    }
-  },
-  bell: {
-    id: "bell",
-    label: "Breadroll",
-    geometry: "model",
-    color: "#ffd166",
-    payout: 16,
-    model: {
-      Component: ItemBreadRoll
-    }
-  },
-  seven: {
-    id: "seven",
-    label: "BirthdayCake",
-    geometry: "model",
-    color: "#ff006e",
-    payout: 30,
-    model: {
-      Component: ItemCakeBirthdaySlice
-    }
-  },
-  diamond: {
-    id: "diamond",
-    label: "Cupcake",
-    geometry: "model",
-    color: "#4cc9f0",
-    payout: 50,
-    model: {
-      Component: ItemCupcake
-    }
-  }
-};
-
 const REEL_SYMBOLS: SymbolId[][] = [
-  ["cherry", "lemon", "plum", "bell", "seven", "diamond", "lemon", "plum", "cherry", "lemon", "plum", "bell", "seven", "diamond", "lemon"],
-  ["plum", "lemon", "diamond", "cherry", "bell", "seven", "cherry", "lemon", "plum", "lemon", "diamond", "cherry", "bell", "seven", "cherry"],
-  ["lemon", "bell", "plum", "diamond", "seven", "cherry", "bell", "plum", "lemon", "bell", "plum", "diamond", "seven", "cherry", "bell"],
-  ["diamond", "plum", "cherry", "bell", "lemon", "seven", "lemon", "plum", "diamond", "plum", "cherry", "bell", "lemon", "seven", "lemon"],
-  ["cherry", "seven", "diamond", "plum", "lemon", "bell", "plum", "diamond", "cherry", "seven", "diamond", "plum", "lemon", "bell", "plum"]
+  ["symbol1", "symbol2", "symbol3", "symbol4", "symbol5", "symbol6", "symbol2", "symbol3", "symbol1", "symbol2", "symbol3", "symbol4", "symbol5", "symbol6", "symbol2"],
+  ["symbol3", "symbol2", "symbol6", "symbol1", "symbol4", "symbol5", "symbol1", "symbol2", "symbol3", "symbol2", "symbol6", "symbol1", "symbol4", "symbol5", "symbol1"],
+  ["symbol2", "symbol4", "symbol3", "symbol6", "symbol5", "symbol1", "symbol4", "symbol3", "symbol2", "symbol4", "symbol3", "symbol6", "symbol5", "symbol1", "symbol4"],
+  ["symbol6", "symbol3", "symbol1", "symbol4", "symbol2", "symbol5", "symbol2", "symbol3", "symbol6", "symbol3", "symbol1", "symbol4", "symbol2", "symbol5", "symbol2"],
+  ["symbol1", "symbol5", "symbol6", "symbol3", "symbol2", "symbol4", "symbol3", "symbol6", "symbol1", "symbol5", "symbol6", "symbol3", "symbol2", "symbol4", "symbol3"]
 ];
 
 const WIN_LINES: WinLine[] = [
