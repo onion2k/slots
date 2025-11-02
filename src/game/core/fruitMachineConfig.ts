@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { SYMBOL_DEFINITIONS } from "./fruitmachine_symbolDefinitions";
+import { SYMBOL_DEFINITIONS } from "./breadwinner_symbolDefinitions";
 
 export type SymbolId =
   | "symbol1"

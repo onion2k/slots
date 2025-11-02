@@ -427,7 +427,7 @@ const SpinCreditDisplay = ({ geometry, material, layout, credits }: SpinCreditDi
         outlineWidth={textOutlineWidth}
         outlineColor="#0b1017"
       >
-        {`Credits: ${credits.toLocaleString()}`}
+        {`COINS: ${credits.toLocaleString()}`}
       </Text>
     </group>
   );
