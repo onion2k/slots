@@ -163,15 +163,6 @@ export const FruitMachineScene = () => {
     <>
       <MachineLights />
       <MachineFloor material={floorMaterial} position={FLOOR_POSITION} />
-      <ContactShadows
-        scale={25}
-        position={[0, -1.15, 0]}
-        opacity={0.4}
-        blur={3.4}
-        far={20}
-        resolution={1024}
-        frames={1}
-      />
       <ReelAssemblyGroup
         config={config}
         reelIds={reelIds}

@@ -12,7 +12,6 @@ import { Environment, OrbitControls } from "@react-three/drei";
 import {
   Bloom,
   EffectComposer,
-  NormalPass,
   Noise,
   SSAO,
   Vignette
@@ -202,8 +201,7 @@ const SceneAtmosphere = ({ color }: { color: Color }) => {
 
 const SceneEffects = () => {
   return (
-    <EffectComposer multisampling={0}>
-      <NormalPass />
+    <EffectComposer multisampling={0} enableNormalPass>
       <SSAO radius={0.25} intensity={32} luminanceInfluence={0.2} />
       <Bloom
         intensity={3.25}
@@ -225,10 +223,16 @@ const ResponsiveCameraRig = ({ controlsRef, config }: ResponsiveCameraRigProps) 
     const { width, height } = size;
     const isMobileWidth = width <= 768;
     const isShortViewport = height <= 680;
+    const mobileViewportEdge = Math.min(width, height);
+    const useMobileCamera = mobileViewportEdge <= 680;
     const isCompact = isMobileWidth || isShortViewport;
 
-    const marginMultiplier = isCompact ? 1.75 : 1.2;
-    const fov = isCompact ? 58 : 50;
+    const marginMultiplier = useMobileCamera
+      ? 1.48
+      : isCompact
+        ? 1.75
+        : 1.2;
+    const fov = useMobileCamera ? 68 : isCompact ? 58 : 50;
     const fovRadians = (fov * Math.PI) / 180;
     const halfHeight = (metrics.topHalfHeight * marginMultiplier) / 2;
     const requiredRadiusHeight = halfHeight / Math.tan(fovRadians / 2);
@@ -238,13 +242,14 @@ const ResponsiveCameraRig = ({ controlsRef, config }: ResponsiveCameraRigProps) 
     const requiredRadiusWidth =
       horizontalTan > 0 ? halfWidth / horizontalTan : Number.POSITIVE_INFINITY;
     const requiredRadius = Math.max(requiredRadiusHeight, requiredRadiusWidth);
-    const minRadius = isCompact ? 20 : 20;
-    const maxRadius = 32;
+    const minRadius = useMobileCamera ? 13.5 : 20;
+    const maxRadius = useMobileCamera ? 22 : 32;
     const orbitRadius = Math.min(Math.max(requiredRadius, minRadius), maxRadius);
 
     const verticalOffset = Math.min(
-      orbitRadius * (isCompact ? 0.18 : 0.14),
-      isCompact ? 2.2 : 1.8
+      orbitRadius *
+        (useMobileCamera ? 0.1 : isCompact ? 0.18 : 0.14),
+      useMobileCamera ? 1.2 : isCompact ? 2.2 : 1.8
     );
     const zDistance = Math.sqrt(
       Math.max(orbitRadius * orbitRadius - verticalOffset * verticalOffset, 1)
@@ -257,8 +262,20 @@ const ResponsiveCameraRig = ({ controlsRef, config }: ResponsiveCameraRigProps) 
       metrics.topHalfBottomWorldY + metrics.topHalfHeight * 0.22,
       1.9
     );
-    const targetBase = isCompact ? compactTargetY : desktopTargetY;
-    const targetAdjustment = isCompact ? -0.35 : -0.55;
+    const mobileTargetY = Math.max(
+      metrics.topHalfBottomWorldY + metrics.topHalfHeight * 0.12,
+      1
+    );
+    const targetBase = useMobileCamera
+      ? mobileTargetY
+      : isCompact
+        ? compactTargetY
+        : desktopTargetY;
+    const targetAdjustment = useMobileCamera
+      ? -0.05
+      : isCompact
+        ? -0.35
+        : -0.55;
     const targetY = Math.max(targetBase + targetAdjustment, 1.1);
 
     camera.position.set(0, targetY + verticalOffset, zDistance);
