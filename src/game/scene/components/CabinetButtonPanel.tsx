@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text } from "@react-three/drei";
 import { useFrame, type GroupProps, type ThreeEvent } from "@react-three/fiber";
 import { useSlotsStore } from "@game/state/slotsStore";
 import type { CabinetGeometryBundle, CabinetLayout, CabinetMaterials } from "./CabinetMeshes";
 import { StaticMesh } from "./StaticMesh";
+import { type MeshStandardMaterial } from "three";
 
 type ButtonPanelGeometry = Pick<
   CabinetGeometryBundle,
@@ -86,11 +87,11 @@ export const CabinetButtonPanel = ({
 
   useEffect(() => {
     if (isSpinPressed) {
-      spinButtonMaterial.color.set("#ffd6d6");
-      spinButtonMaterial.emissive.set("#ff5a47");
+      spinButtonMaterial.color.set("#fff1f1");
+      spinButtonMaterial.emissive.set("#ff7a63");
       spinButtonMaterial.emissiveIntensity = Math.max(
-        defaultSpinEmissiveIntensityRef.current * 3.2,
-        defaultSpinEmissiveIntensityRef.current + 1.2
+        defaultSpinEmissiveIntensityRef.current * 4.2,
+        defaultSpinEmissiveIntensityRef.current + 2.1
       );
     } else {
       spinButtonMaterial.color.copy(defaultSpinColorRef.current);
@@ -311,6 +312,49 @@ const HoldButtonMesh = ({
     )
   );
   const [isPressed, setIsPressed] = useState(false);
+  const holdMaterial = useMemo<MeshStandardMaterial>(() => {
+    const clone = material.clone();
+    clone.needsUpdate = true;
+    return clone;
+  }, [material]);
+  const defaultColorRef = useRef(holdMaterial.color.clone());
+  const defaultEmissiveRef = useRef(holdMaterial.emissive.clone());
+  const defaultEmissiveIntensityRef = useRef(holdMaterial.emissiveIntensity);
+  const highlightColorRef = useRef(holdMaterial.color.clone());
+
+  useEffect(() => {
+    defaultColorRef.current.copy(material.color);
+    defaultEmissiveRef.current.copy(material.emissive);
+    defaultEmissiveIntensityRef.current = material.emissiveIntensity;
+    highlightColorRef.current.copy(material.color).offsetHSL(0, 0, 0.25);
+
+    holdMaterial.color.copy(material.color);
+    holdMaterial.emissive.copy(material.emissive);
+    holdMaterial.emissiveIntensity = material.emissiveIntensity;
+    holdMaterial.needsUpdate = true;
+  }, [holdMaterial, material]);
+
+  useEffect(() => {
+    if (held) {
+      holdMaterial.color.copy(highlightColorRef.current);
+      holdMaterial.emissive.set("#f2c94c");
+      holdMaterial.emissiveIntensity = Math.max(
+        defaultEmissiveIntensityRef.current * 2.1,
+        defaultEmissiveIntensityRef.current + 0.9
+      );
+    } else {
+      holdMaterial.color.copy(defaultColorRef.current);
+      holdMaterial.emissive.copy(defaultEmissiveRef.current);
+      holdMaterial.emissiveIntensity = defaultEmissiveIntensityRef.current;
+    }
+    holdMaterial.needsUpdate = true;
+  }, [held, holdMaterial]);
+
+  useEffect(() => {
+    return () => {
+      holdMaterial.dispose();
+    };
+  }, [holdMaterial]);
 
   useEffect(() => {
     if (isSpinning) {
@@ -376,7 +420,7 @@ const HoldButtonMesh = ({
     <StaticMesh
       name={`holdButton-${reelId}`}
       geometry={geometry}
-      material={material}
+      material={holdMaterial}
       position={position}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}

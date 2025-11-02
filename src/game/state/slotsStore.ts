@@ -32,6 +32,7 @@ interface WinLineResult {
   line: WinLine;
   symbol: SymbolId;
   payout: number;
+  matchLength: number;
 }
 
 export interface SpinResult {
@@ -80,6 +81,11 @@ const getOffsetSymbol = (
   return symbols[resolved];
 };
 
+const PARTIAL_MATCH_MULTIPLIERS: Record<number, number> = {
+  3: 0.35,
+  4: 0.65
+};
+
 const evaluateSpinResult = (
   config: FruitMachineConfig,
   reels: ReelRuntimeState[]
@@ -88,39 +94,67 @@ const evaluateSpinResult = (
   const lines: WinLineResult[] = [];
 
   for (const line of winLines) {
-    let winningSymbol: SymbolId | null = null;
-    let isWinningLine = true;
-
-    reels.forEach((reel, reelIndex) => {
-      if (!isWinningLine) {
-        return;
-      }
-
+    const lineSymbols: SymbolId[] = reels.map((reel, reelIndex) => {
       const offset = line.indices[reelIndex] ?? 0;
-      const symbol = getOffsetSymbol(
+      return getOffsetSymbol(
         reel.config.symbols,
         reel.currentIndex,
         offset
       );
-
-      if (winningSymbol === null) {
-        winningSymbol = symbol;
-        return;
-      }
-
-      if (symbol !== winningSymbol) {
-        isWinningLine = false;
-      }
     });
 
-    if (isWinningLine && winningSymbol) {
-      const basePayout = symbolDefinitions[winningSymbol].payout;
+    const firstSymbol = lineSymbols[0];
+    if (!firstSymbol) {
+      continue;
+    }
+
+    const symbolDefinition = symbolDefinitions[firstSymbol];
+    if (!symbolDefinition) {
+      continue;
+    }
+
+    const allMatch = lineSymbols.every((symbol) => symbol === firstSymbol);
+
+    if (allMatch) {
+      const basePayout = symbolDefinition.payout;
       const payout = Math.round(basePayout * line.payoutMultiplier);
 
       lines.push({
         line,
-        symbol: winningSymbol,
-        payout
+        symbol: firstSymbol,
+        payout,
+        matchLength: lineSymbols.length
+      });
+      continue;
+    }
+
+    let consecutiveMatchCount = 1;
+    for (let index = 1; index < lineSymbols.length; index += 1) {
+      if (lineSymbols[index] === firstSymbol) {
+        consecutiveMatchCount += 1;
+      } else {
+        break;
+      }
+    }
+
+    if (consecutiveMatchCount >= 3) {
+      const multiplier =
+        PARTIAL_MATCH_MULTIPLIERS[consecutiveMatchCount] ?? 0;
+      if (multiplier <= 0) {
+        continue;
+      }
+
+      const basePayout = symbolDefinition.payout;
+      const payout = Math.max(
+        1,
+        Math.round(basePayout * line.payoutMultiplier * multiplier)
+      );
+
+      lines.push({
+        line,
+        symbol: firstSymbol,
+        payout,
+        matchLength: consecutiveMatchCount
       });
     }
   }

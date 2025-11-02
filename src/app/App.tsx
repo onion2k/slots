@@ -202,11 +202,11 @@ const SceneAtmosphere = ({ color }: { color: Color }) => {
 const SceneEffects = () => {
   return (
     <EffectComposer multisampling={0}>
-      <SSAO radius={0.25} intensity={32} luminanceInfluence={0.4} />
+      <SSAO radius={0.25} intensity={32} luminanceInfluence={0.2} />
       <Bloom
-        intensity={0.7}
-        luminanceThreshold={0.55}
-        luminanceSmoothing={0.45}
+        intensity={3.25}
+        luminanceThreshold={0.48}
+        luminanceSmoothing={0.62}
         mipmapBlur
       />
       <Noise premultiply opacity={0.08} />
