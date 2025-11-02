@@ -5,7 +5,7 @@ import {
   ItemBreadRoll,
   ItemCakeBirthdaySlice,
   ItemCupcake
-} from "@game/assets";
+} from "@game/assets/breadwinner";
 
 import type { SymbolDefinition, SymbolId } from "./fruitMachineConfig";
 
